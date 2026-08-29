@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import GridBackground from '../../components/Board/GridBackground';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StatsSkeleton from '../../components/UI/StatsSkeleton';
+import { Ionicons } from '@expo/vector-icons';
 
 type Session = {
   studied_at: string;
@@ -141,22 +142,22 @@ export default function Stats() {
             <View style={styles.statCard}>
             <Text style={styles.statNumber}>{streak}</Text>
             <Text style={styles.statLabel}>Racha de días</Text>
-            <Text style={styles.statEmoji}></Text>
+            <Ionicons name="flame" size={26} color="#FF5722" />
             </View>
             <View style={styles.statCard}>
             <Text style={styles.statNumber}>{getTodayCards()}</Text>
             <Text style={styles.statLabel}>Hoy</Text>
-            <Text style={styles.statEmoji}></Text>
+            <Ionicons name="today" size={26} color="#6C63FF" />
             </View>
             <View style={styles.statCard}>
             <Text style={styles.statNumber}>{totalCards}</Text>
             <Text style={styles.statLabel}>Total</Text>
-            <Text style={styles.statEmoji}></Text>
+            <Ionicons name="layers" size={26} color="#00BCD4" />
             </View>
             <View style={styles.statCard}>
             <Text style={styles.statNumber}>{getAvgAccuracy()}%</Text>
             <Text style={styles.statLabel}>Precisión</Text>
-            <Text style={styles.statEmoji}></Text>
+            <Ionicons name="checkmark-done-circle" size={26} color="#27ae60" />
             </View>
         </View>
 

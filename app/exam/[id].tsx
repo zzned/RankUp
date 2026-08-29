@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 type Card = {
   id: string;
@@ -107,7 +108,7 @@ export default function ExamSession() {
   if (cards.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyIcon}>📭</Text>
+        <Ionicons name="file-tray-outline" size={64} color="#555" style={styles.emptyIcon} />
         <Text style={styles.emptyText}>No hay tarjetas para examinar</Text>
         <Text style={styles.emptySubtext}>Agrega tarjetas a esta colección primero</Text>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -122,9 +123,12 @@ export default function ExamSession() {
     const percentage = Math.round((results.correct / total) * 100);
     return (
       <View style={styles.centered}>
-        <Text style={styles.doneIcon}>
-          {percentage >= 80 ? '🏆' : percentage >= 50 ? '📈' : '💪'}
-        </Text>
+        <Ionicons
+          name={percentage >= 80 ? 'trophy' : percentage >= 50 ? 'trending-up' : 'barbell'}
+          size={64}
+          color={percentage >= 80 ? '#F39C12' : percentage >= 50 ? '#6C63FF' : '#00BCD4'}
+          style={styles.doneIcon}
+        />
         <Text style={styles.doneTitle}>Examen completado</Text>
         <Text style={styles.doneSubtitle}>{total} tarjetas evaluadas</Text>
 
@@ -134,12 +138,12 @@ export default function ExamSession() {
             <Text style={styles.percentageLabel}>de aciertos</Text>
           </View>
           <View style={styles.resultRow}>
-            <Text style={styles.resultDot}>✅</Text>
+            <Ionicons name="checkmark-circle" size={18} color="#27ae60" style={styles.resultDot} />
             <Text style={styles.resultLabel}>Correctas</Text>
             <Text style={styles.resultCount}>{results.correct}</Text>
           </View>
           <View style={styles.resultRow}>
-            <Text style={styles.resultDot}>❌</Text>
+            <Ionicons name="close-circle" size={18} color="#c0392b" style={styles.resultDot} />
             <Text style={styles.resultLabel}>Incorrectas</Text>
             <Text style={styles.resultCount}>{results.incorrect}</Text>
           </View>

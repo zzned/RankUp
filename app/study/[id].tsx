@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { Ionicons } from '@expo/vector-icons';
 
 type Card = {
   id: string;
@@ -132,7 +133,7 @@ export default function StudySession() {
   if (cards.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyIcon}>📭</Text>
+        <Ionicons name="file-tray-outline" size={64} color="#555" style={styles.emptyIcon} />
         <Text style={styles.emptyText}>No hay tarjetas para estudiar</Text>
         <Text style={styles.emptySubtext}>Agrega tarjetas a esta colección primero</Text>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -146,23 +147,23 @@ export default function StudySession() {
     const total = results.easy + results.medium + results.hard;
     return (
       <View style={styles.centered}>
-        <Text style={styles.doneIcon}>🎉</Text>
+        <Ionicons name="trophy" size={64} color="#F39C12" style={styles.doneIcon} />
         <Text style={styles.doneTitle}>Sesión completada</Text>
         <Text style={styles.doneSubtitle}>{total} tarjetas revisadas</Text>
 
         <View style={styles.resultsBox}>
           <View style={styles.resultRow}>
-            <Text style={styles.resultDot}>🟢</Text>
+            <Ionicons name="ellipse" size={14} color="#27ae60" style={styles.resultDot} />
             <Text style={styles.resultLabel}>Fácil</Text>
             <Text style={styles.resultCount}>{results.easy}</Text>
           </View>
           <View style={styles.resultRow}>
-            <Text style={styles.resultDot}>🟡</Text>
+            <Ionicons name="ellipse" size={14} color="#F39C12" style={styles.resultDot} />
             <Text style={styles.resultLabel}>Regular</Text>
             <Text style={styles.resultCount}>{results.medium}</Text>
           </View>
           <View style={styles.resultRow}>
-            <Text style={styles.resultDot}>🔴</Text>
+            <Ionicons name="ellipse" size={14} color="#c0392b" style={styles.resultDot} />
             <Text style={styles.resultLabel}>Difícil</Text>
             <Text style={styles.resultCount}>{results.hard}</Text>
           </View>

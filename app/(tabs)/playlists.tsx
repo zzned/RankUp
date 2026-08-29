@@ -17,6 +17,7 @@ import { supabase } from '../../lib/supabase';
 import GridBackground from '../../components/Board/GridBackground';
 import PlaylistSkeleton from '../../components/UI/PlaylistSkeleton';
 import SearchBar from '../../components/UI/SearchBar';
+import { Ionicons } from '@expo/vector-icons';
 
 type Playlist = {
   id: string;
@@ -130,13 +131,13 @@ export default function Playlists() {
 
         {loading ? <PlaylistSkeleton /> : playlists.length === 0 ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyIcon}>📚</Text>
+            <Ionicons name="albums-outline" size={64} color="#6C63FF" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>No tienes colecciones</Text>
             <Text style={styles.emptySubtext}>Crea una para organizar tus tarjetas</Text>
           </View>
         ) : filteredPlaylists.length === 0 ? (
           <View style={styles.centered}>
-            <Text style={styles.emptyIcon}>🔍</Text>
+            <Ionicons name="search-outline" size={64} color="#555" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>Sin resultados</Text>
             <Text style={styles.emptySubtext}>No hay colecciones que coincidan con "{search}"</Text>
           </View>

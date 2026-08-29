@@ -6,6 +6,7 @@ import GridBackground from '../../components/Board/GridBackground';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BoardSkeleton from '../../components/UI/BoardSkeleton';  
 import SearchBar from '../../components/UI/SearchBar';
+import { Ionicons } from '@expo/vector-icons';
 
 type Card = {
   id: string;
@@ -138,13 +139,13 @@ export default function Board() {
 
         {loading ? <BoardSkeleton /> : cards.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🃏</Text>
+            <Ionicons name="layers-outline" size={64} color="#6C63FF" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>No tienes tarjetas aún</Text>
             <Text style={styles.emptySubtext}>Crea tu primera tarjeta para empezar</Text>
           </View>
         ) : filteredCards.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🔍</Text>
+            <Ionicons name="search-outline" size={64} color="#555" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>Sin resultados</Text>
             <Text style={styles.emptySubtext}>No hay tarjetas que coincidan con "{search}"</Text>
           </View>
