@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { router, useFocusEffect } from 'expo-router';
@@ -22,6 +22,8 @@ type Card = {
   stat2_value: string;
   stat3_label: string;
   stat3_value: string;
+  playlist_id: string | null;
+  playlists?: { name: string } | null;
 };
 
 export default function Board() {
@@ -29,6 +31,7 @@ export default function Board() {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState('');
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState<'recent' | 'alpha' | 'playlist'>('recent');
 
   const fetchProfile = async () => {
   const { data: { user } } = await supabase.auth.getUser();
@@ -57,7 +60,10 @@ export default function Board() {
   };
 
   const fetchCards = async () => {
-    const { data } = await supabase.from('cards').select('*').order('created_at', { ascending: false });
+    const { data } = await supabase
+      .from('cards')
+      .select('*, playlists(name)')
+      .order('created_at', { ascending: false });
     if (data) setCards(data);
     setLoading(false);
   };
@@ -68,6 +74,17 @@ export default function Board() {
       fetchProfile();
     }, [])
   );
+
+  useEffect(() => {
+    const loadSort = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const saved = await AsyncStorage.getItem(`sort_by_${user.id}`);
+        if (saved) setSortBy(saved as any);
+      }
+    };
+    loadSort();
+  }, []);
 
   const handleLogout = async () => {
     Alert.alert(
@@ -108,6 +125,19 @@ export default function Board() {
     );
   });
 
+  const sortedCards = [...filteredCards].sort((a, b) => {
+    if (sortBy === 'alpha') {
+      return a.title.localeCompare(b.title);
+    }
+    if (sortBy === 'playlist') {
+      const na = a.playlists?.name ?? 'zzzzzz';
+      const nb = b.playlists?.name ?? 'zzzzzz';
+      if (na === nb) return a.title.localeCompare(b.title);
+      return na.localeCompare(nb);
+    }
+    return 0;
+  });
+
   const suggestions = search.trim()
     ? filteredCards.map((c) => ({ id: c.id, label: c.title, color: c.color }))
     : [];
@@ -145,6 +175,29 @@ export default function Board() {
             onSelectSuggestion={(id) => router.push(`/card/${id}`)}
           />
         ) : null}
+        {!loading && cards.length > 1 ? (
+          <View style={styles.sortRow}>
+            {[
+              { key: 'recent', label: 'Recientes' },
+              { key: 'alpha', label: 'A-Z' },
+              { key: 'playlist', label: 'Colección' },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[styles.sortChip, sortBy === opt.key && styles.sortChipActive]}
+                onPress={async () => {
+                  setSortBy(opt.key as any);
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) await AsyncStorage.setItem(`sort_by_${user.id}`, opt.key);
+                }}
+              >
+                <Text style={[styles.sortChipText, sortBy === opt.key && styles.sortChipTextActive]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : null}
 
         {loading ? <BoardSkeleton /> : cards.length === 0 ? (
           <View style={styles.empty}>
@@ -160,7 +213,7 @@ export default function Board() {
           </View>
         ) : (
           <ScrollView contentContainerStyle={styles.grid} showsVerticalScrollIndicator={false}>
-            {filteredCards.map((card) => (
+            {sortedCards.map((card) => (
               <TouchableOpacity
                 key={card.id}
                 style={[styles.card, { borderColor: card.color }]}
@@ -286,4 +339,16 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   countChipText: { color: '#6C63FF', fontSize: 13, fontWeight: 'bold' },
+  sortRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 24, marginBottom: 14 },
+  sortChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 4,
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  sortChipActive: { borderColor: '#6C63FF', backgroundColor: '#1a1a2e' },
+  sortChipText: { color: '#777', fontSize: 12, fontWeight: 'bold' },
+  sortChipTextActive: { color: '#6C63FF' }, 
 });
