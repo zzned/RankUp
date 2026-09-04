@@ -119,7 +119,16 @@ export default function Board() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.title}>Mi Board</Text>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>Mi Board</Text>
+              {cards.length > 0 ? (
+                <View style={styles.countChip}>
+                  <Text style={styles.countChipText}>
+                    {search.trim() ? `${filteredCards.length}/${cards.length}` : cards.length}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
           <TouchableOpacity onPress={handleLogout}>
             <Text style={styles.logout}>Salir</Text>
@@ -267,4 +276,14 @@ const styles = StyleSheet.create({
   },
   fabText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   greeting: { fontSize: 13, color: '#6C63FF', marginBottom: 2 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  countChip: {
+    backgroundColor: '#1a1a2e',
+    borderWidth: 1,
+    borderColor: '#6C63FF',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  countChipText: { color: '#6C63FF', fontSize: 13, fontWeight: 'bold' },
 });

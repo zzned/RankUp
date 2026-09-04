@@ -35,6 +35,7 @@ export default function Playlists() {
   const [description, setDescription] = useState('');
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchPlaylists = async () => {
     const { data } = await supabase
@@ -60,17 +61,41 @@ export default function Playlists() {
   const handleCreate = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    await supabase.from('playlists').insert({
-      user_id: user?.id,
-      name,
-      description,
-    });
+
+    if (editingId) {
+      await supabase
+        .from('playlists')
+        .update({ name: name.trim(), description })
+        .eq('id', editingId);
+    } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from('playlists').insert({
+        user_id: user?.id,
+        name: name.trim(),
+        description,
+      });
+    }
+
     setName('');
     setDescription('');
+    setEditingId(null);
     setModalVisible(false);
     setSaving(false);
     fetchPlaylists();
+  };
+
+  const openEdit = (playlist: Playlist) => {
+    setEditingId(playlist.id);
+    setName(playlist.name);
+    setDescription(playlist.description ?? '');
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setEditingId(null);
+    setName('');
+    setDescription('');
+    setModalVisible(false);
   };
 
   const handleDelete = async (playlistId: string, playlistName: string) => {
@@ -150,25 +175,40 @@ export default function Playlists() {
                 style={styles.playlistCard}
                 onPress={() => router.push({ pathname: `/playlist/${playlist.id}`, params: { name: playlist.name } })}
               >
-                <View style={styles.playlistInfo}>
-                  <Text style={styles.playlistName}>{playlist.name}</Text>
-                  {playlist.description ? (
-                    <Text style={styles.playlistDesc} numberOfLines={2}>{playlist.description}</Text>
-                  ) : null}
+                <Text style={styles.playlistName} numberOfLines={2}>
+                  {playlist.name}
+                </Text>
+                {playlist.description ? (
+                  <Text style={styles.playlistDesc} numberOfLines={2}>{playlist.description}</Text>
+                ) : null}
+
+                <View style={styles.playlistFooter}>
+                  <View style={styles.countBadge}>
+                    <Text style={styles.cardCount}>{playlist.card_count}</Text>
+                    <Text style={styles.cardCountLabel}>tarjetas</Text>
+                  </View>
+
+                  <View style={styles.actions}>
+                    <TouchableOpacity
+                      style={styles.editBtn}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        openEdit(playlist);
+                      }}
+                    >
+                      <Text style={styles.editBtnText}>Editar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleDelete(playlist.id, playlist.name);
+                      }}
+                    >
+                      <Text style={styles.deleteBtnText}>Eliminar</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                <View style={styles.playlistMeta}>
-                  <Text style={styles.cardCount}>{playlist.card_count}</Text>
-                  <Text style={styles.cardCountLabel}>tarjetas</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.deleteBtn}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    handleDelete(playlist.id, playlist.name);
-                  }}
-                >
-                  <Text style={styles.deleteBtnText}>Eliminar</Text>
-                </TouchableOpacity>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -182,7 +222,9 @@ export default function Playlists() {
         >
             <View style={styles.modalOverlay}>
                 <View style={styles.modalContent}>      
-            <Text style={styles.modalTitle}>Nueva Colección</Text>
+              <Text style={styles.modalTitle}>
+                {editingId ? 'Editar Colección' : 'Nueva Colección'}
+              </Text>
 
             <TextInput
               style={styles.input}
@@ -204,16 +246,16 @@ export default function Playlists() {
 
                 <View style={styles.modalButtons}>
                 <TouchableOpacity
-                    style={styles.cancelBtn}
-                    onPress={() => setModalVisible(false)}
+                  style={styles.cancelBtn}
+                  onPress={closeModal}
                 >
-                    <Text style={styles.cancelBtnText}>Cancelar</Text>
+                  <Text style={styles.cancelBtnText}>Cancelar</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.saveBtn} onPress={handleCreate} disabled={saving}>
                     {saving ? (
                     <ActivityIndicator color="#fff" />
                     ) : (
-                    <Text style={styles.saveBtnText}>Crear</Text>
+                    <Text style={styles.saveBtnText}>{editingId ? 'Guardar' : 'Crear'}</Text>
                     )}
                 </TouchableOpacity>
                 </View>
@@ -243,21 +285,25 @@ const styles = StyleSheet.create({
   emptyText: { fontSize: 20, color: '#fff', fontWeight: 'bold', marginBottom: 8 },
   emptySubtext: { fontSize: 14, color: '#888' },
   list: { paddingHorizontal: 24, paddingBottom: 100, gap: 12 },
-  playlistCard: {
+    playlistCard: {
     backgroundColor: '#1a1a1a',
     borderRadius: 16,
     padding: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#333',
   },
-  playlistInfo: { flex: 1 },
   playlistName: { color: '#fff', fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   playlistDesc: { color: '#888', fontSize: 13 },
-  playlistMeta: { alignItems: 'center', marginLeft: 16 },
-  cardCount: { color: '#6C63FF', fontSize: 24, fontWeight: 'bold' },
-  cardCountLabel: { color: '#666', fontSize: 11 },
+  playlistFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  countBadge: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
+  actions: { flexDirection: 'row', gap: 8 },
+  cardCount: { color: '#6C63FF', fontSize: 20, fontWeight: 'bold' },
+  cardCountLabel: { color: '#666', fontSize: 12 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.7)',
@@ -302,14 +348,23 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 
-  deleteBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    deleteBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 4,
     backgroundColor: '#2a1a1a',
     borderWidth: 1,
     borderColor: '#ff4444',
-    marginLeft: 8,
   },
-  deleteBtnText: { color: '#ff4444', fontSize: 12, fontWeight: 'bold' },
+  deleteBtnText: { color: '#ff4444', fontSize: 13, fontWeight: 'bold' },
+
+  editBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 4,
+    backgroundColor: '#1a1a2e',
+    borderWidth: 1,
+    borderColor: '#6C63FF',
+  },
+  editBtnText: { color: '#6C63FF', fontSize: 13, fontWeight: 'bold' },
 });
