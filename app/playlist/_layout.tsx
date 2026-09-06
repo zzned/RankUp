@@ -6,6 +6,7 @@ export default function PlaylistLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: '#0f0f0f' },
+        animation: 'simple_push',
       }}
     />
   );
