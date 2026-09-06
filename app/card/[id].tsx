@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import ShareCard from '../../components/Card/ShareCard';
 
@@ -34,14 +34,16 @@ export default function CardDetail() {
   const [loading, setLoading] = useState(true);
   const [showShare, setShowShare] = useState(false);
 
-  useEffect(() => {
-    const fetchCard = async () => {
-      const { data } = await supabase.from('cards').select('*').eq('id', id).single();
-      if (data) setCard(data);
-      setLoading(false);
-    };
-    fetchCard();
-  }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCard = async () => {
+        const { data } = await supabase.from('cards').select('*').eq('id', id).single();
+        if (data) setCard(data);
+        setLoading(false);
+      };
+      fetchCard();
+    }, [id])
+  );
 
   const handleDelete = async () => {
     Alert.alert(
