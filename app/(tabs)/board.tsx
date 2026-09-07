@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   emptySubtext: { fontSize: 14, color: '#888' },
   grid: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 120,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
@@ -321,8 +321,11 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   fab: {
+    position: 'absolute',
+    bottom: 24,
+    left: 24,
+    right: 24,
     backgroundColor: '#6C63FF',
-    margin: 24,
     padding: 18,
     borderRadius: 16,
     alignItems: 'center',
