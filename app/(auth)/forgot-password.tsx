@@ -9,27 +9,50 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase';
-import { Image } from 'react-native';
 
-export default function Login() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sent, setSent] = useState(false);
 
-  const handleLogin = async () => {
+  const handleReset = async () => {
+    if (!email.trim()) {
+      setError('Ingresa tu correo electrónico');
+      return;
+    }
     setLoading(true);
     setError('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+
     if (error) {
       setError(error.message);
     } else {
-      router.replace('/(tabs)/board');
+      setSent(true);
     }
     setLoading(false);
   };
+
+  if (sent) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.inner}>
+          <Ionicons name="mail-open-outline" size={72} color="#6C63FF" style={styles.icon} />
+          <Text style={styles.title}>Revisa tu correo</Text>
+          <Text style={styles.subtitle}>
+            Te enviamos un enlace a {email.trim()} para restablecer tu contraseña.
+          </Text>
+          <TouchableOpacity style={styles.button} onPress={() => router.replace('/(auth)/login')}>
+            <Text style={styles.buttonText}>Volver al inicio</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -37,12 +60,11 @@ export default function Login() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={styles.inner}>
-        <Image
-          source={require('../../assets/RankUpLogo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+        <Ionicons name="lock-closed-outline" size={64} color="#6C63FF" style={styles.icon} />
+        <Text style={styles.title}>¿Olvidaste tu contraseña?</Text>
+        <Text style={styles.subtitle}>
+          Ingresa tu correo y te enviaremos un enlace para restablecerla.
+        </Text>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -55,32 +77,18 @@ export default function Login() {
           autoCapitalize="none"
           keyboardType="email-address"
         />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor="#888"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        <TouchableOpacity style={styles.button} onPress={handleReset} disabled={loading}>
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Iniciar sesión</Text>
+            <Text style={styles.buttonText}>Enviar enlace</Text>
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
-          <Text style={styles.forgotLink}>¿Olvidaste tu contraseña?</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Volver a iniciar sesión</Text>
         </TouchableOpacity>
-
-        <Link href="/(auth)/register" asChild>
-          <TouchableOpacity>
-            <Text style={styles.link}>¿No tienes cuenta? Regístrate</Text>
-          </TouchableOpacity>
-        </Link>
       </View>
     </KeyboardAvoidingView>
   );
@@ -89,8 +97,15 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f0f' },
   inner: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
-  title: { fontSize: 42, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#888', textAlign: 'center', marginBottom: 32 },
+  icon: { alignSelf: 'center', marginBottom: 20 },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#fff', textAlign: 'center', marginBottom: 10 },
+  subtitle: {
+    fontSize: 14,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 28,
+    lineHeight: 20,
+  },
   input: {
     backgroundColor: '#1a1a1a',
     borderRadius: 12,
@@ -111,7 +126,4 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   error: { color: '#ff4444', textAlign: 'center', marginBottom: 16 },
   link: { color: '#6C63FF', textAlign: 'center', fontSize: 14 },
-
-  logo: { width: 400, height: 400, alignSelf: 'center', marginBottom: -60 },
-  forgotLink: { color: '#888', textAlign: 'center', fontSize: 13, marginBottom: 14 },
 });
