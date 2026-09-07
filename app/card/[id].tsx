@@ -11,6 +11,7 @@ import {
 import { router, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import ShareCard from '../../components/Card/ShareCard';
+import { Ionicons } from '@expo/vector-icons';
 
 type Card = {
   id: string;
@@ -26,6 +27,7 @@ type Card = {
   stat2_value: string;
   stat3_label: string;
   stat3_value: string;
+  playlist_id: string | null;
 };
 
 export default function CardDetail() {
@@ -64,6 +66,32 @@ export default function CardDetail() {
     );
   };
 
+  const handleDuplicate = async () => {
+    if (!card) return;
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase.from('cards').insert({
+      user_id: user?.id,
+      title: `${card.title} (copia)`,
+      subtitle: card.subtitle,
+      description: card.description,
+      emoji: card.emoji,
+      stat1_label: card.stat1_label,
+      stat1_value: card.stat1_value,
+      stat2_label: card.stat2_label,
+      stat2_value: card.stat2_value,
+      stat3_label: card.stat3_label,
+      stat3_value: card.stat3_value,
+      theme: card.theme,
+      color: card.color,
+      playlist_id: card.playlist_id,
+    }).select().single();
+
+    if (!error && data) {
+      router.replace({ pathname: '/card/edit', params: { id: data.id, duplicated: '1' } });
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -88,6 +116,9 @@ export default function CardDetail() {
       </TouchableOpacity>
       <TouchableOpacity onPress={() => router.push({ pathname: '/card/edit', params: { id: card.id } })}>
         <Text style={styles.edit}>Editar</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleDuplicate} hitSlop={8}>
+        <Ionicons name="copy-outline" size={20} color="#6C63FF" />
       </TouchableOpacity>
       <TouchableOpacity onPress={() => setShowShare(true)}>
         <Text style={styles.share}>Compartir</Text>

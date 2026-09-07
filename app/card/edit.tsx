@@ -29,7 +29,7 @@ type Playlist = {
 };
 
 export default function EditCard() {
-  const { id } = useLocalSearchParams();
+  const { id, duplicated } = useLocalSearchParams();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,6 +48,7 @@ export default function EditCard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showInherited, setShowInherited] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,6 +69,7 @@ export default function EditCard() {
         setStat3Label(card.stat3_label ?? '');
         setStat3Value(card.stat3_value ?? '');
         setSelectedPlaylist(card.playlist_id ?? null);
+        if (duplicated === '1' && card.playlist_id) setShowInherited(true);
         const theme = THEMES.find((t) => t.id === card.theme);
         if (theme && theme.color === card.color) {
           setSelectedTheme(theme);
@@ -224,6 +226,11 @@ export default function EditCard() {
           {playlists.length > 0 ? (
             <>
               <Text style={styles.label}>Colección (opcional)</Text>
+              {showInherited ? (
+                <Text style={styles.inheritedNote}>
+                  Heredada de la tarjeta original
+                </Text>
+              ) : null}
               <View style={styles.themes}>
                 {playlists.map((playlist) => (
                   <TouchableOpacity
@@ -233,7 +240,10 @@ export default function EditCard() {
                       { backgroundColor: '#222', borderWidth: 1, borderColor: '#444' },
                       selectedPlaylist === playlist.id && { borderColor: '#6C63FF', borderWidth: 2 },
                     ]}
-                    onPress={() => setSelectedPlaylist(selectedPlaylist === playlist.id ? null : playlist.id)}
+                    onPress={() => {
+                      setSelectedPlaylist(selectedPlaylist === playlist.id ? null : playlist.id);
+                      setShowInherited(false);
+                    }}
                   >
                     <Text style={styles.themeBtnText}>{playlist.name}</Text>
                   </TouchableOpacity>
@@ -362,5 +372,11 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: '#fff',
     transform: [{ scale: 1.15 }],
+  },
+  inheritedNote: {
+    color: '#F39C12',
+    fontSize: 12,
+    marginBottom: 10,
+    marginTop: -4,
   },
 });
